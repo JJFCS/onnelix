@@ -107,17 +107,14 @@ left   = ["mode", "spinner", "version-control", "read-only-indicator"]
 center = ["file-name", "file-modification-indicator"]
 right  = ["diagnostics", "selections", "position", "file-type"]
 separator = "|"  # TODO - Experiment with other separator symbols
-mode.normal = ">>>>>>>"
-mode.insert = "|||||||"
-mode.select = "<<<<<<<"
 diagnostics = ["warning", "error"]
 
 [editor.lsp]
 enable = true
-display-messages = true
-display-progress-messages = false
 auto-signature-help = true
 display-inlay-hints = false
+display-messages = true
+display-progress-messages = false
 
 [editor.file-picker]
 hidden = false
@@ -129,16 +126,11 @@ wrap-around = true
 [editor.inline-diagnostics]
 cursor-line = "hint"  # TODO - experiment - "disable" if dowan
 
-[editor.whitespace.render]
-space   = "none"  # TODO - other option : "all"
-tab     = "none"  # TODO - other option : "all"
-newline = "none"
-
 [editor.whitespace.characters]
-space = "."
-tab = ">"
+space   = "."
 newline = "‡"
-tabpad = "."
+tab     = ">"
+tabpad  = "."
 
 [editor.soft-wrap]
 enable = true
