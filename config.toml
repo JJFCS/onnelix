@@ -1,0 +1,467 @@
+# TODO
+# - inserting a new line is not how i like it... i want it to behave like emacs
+# - every once in a while you have to check that our configurations does not change stock helix .. only valid settings and key remaps
+# - do not like how c-g behaves .. remap to ESC?
+# - how do we handle indentation? i prefer tabs with spaces to align whenever i want
+# - beg of line needs to toggle between first character and the actual beg of line
+# - make more simplistic? too much of a maximalist configuration now?
+
+# notes
+# - arrays run short sequences of stock commands;
+# - @... strings replay built-in key sequences. No plugins or shell editing tools.
+# - C- = Control, A- = Alt/Option (Emacs Meta), S- = Shift.
+
+
+# modes:
+# - normal mode word motions select their traversed span
+# - select mode extends
+# - insert mode types text
+# - escape and unbounded keys stay native
+
+
+# Undo: C-/ undoes (C-_ and legacy terminal C-7 aliases are also bound).
+# C-Shift-/ or C-? redoes IF the terminal sends
+# distinct events. Some terminals collapse Ctrl+Shift+/ into another key;
+# C-x u / C-x U are reliable undo/redo alternatives.
+# Insert-mode undo/redo returns to normal mode before using native history.
+# Enter/C-j/C-o commit a checkpoint AFTER inserting the newline. Navigation
+# commits BEFORE moving. Word/line deletion is bracketed by checkpoints.
+# C-c u commits a checkpoint manually without leaving insert mode.
+# Continuous typing on one line is still one group until a checkpoint.
+# These bindings do not add timed or per-word automatic undo grouping.
+#
+# C-o: normal/select = open_below (enter insert mode on a new line below).
+#      insert = insert_newline (split at the caret and move to the new line).
+# This uses Helix's native newline actions, including its indentation rules.
+#
+# Multiple selections: select text first, then C-> / C-< add the next/previous
+# literal match. C-c m n / p are terminal-friendly alternatives.
+# C-c m j / k add a selection on the next/previous line.
+# C-c m a asks for regex matches in the whole buffer; C-c s uses the selection.
+# C-c m s splits a selection by lines; f filters selections by regex;
+# o keeps the primary selection, r removes it, [ / ] choose the primary.
+# Selection tools invoked from insert mode first return to normal mode.
+#
+# Alignment: select the lines, C-c s, type the delimiter regex (e.g. =), Enter,
+# then C-c a. Each delimiter becomes a selection; align_selections aligns it.
+# This is native column alignment, not all of Emacs align-regexp's options.
+#
+# M-% starts NATIVE BULK regex selection: normal/insert = whole buffer,
+# select = current selection(s). Type a regex, Enter, c, replacement, Escape.
+# The replacement is plain typed text; c does not expand regex capture groups.
+# There is no yes/no query-replace dialog. For review one match at a time:
+# C-s pattern Enter, c replacement Escape; n moves on; . repeats that edit.
+# Use n again to skip a match. Begin this workflow in normal mode.
+#
+# C-x: C-f open; C-s save; s save all; b/C-b buffers; k close buffer; h select
+# all; 0 close view; 1 only this view; 2 horizontal split; 3 vertical split;
+# o next view; left/right previous/next buffer; C-x flip anchor/cursor;
+# C-u/C-l uppercase/lowercase selection; u/U undo/redo; C-c quit safely.
+# M-; comments; M-. definition; M-, jump back; M-g g line number;
+# M-g n/p next/previous diagnostic; insert M-/ completion.
+# C-c: a align; s regex selection; u checkpoint; / project search; i/I document/
+# workspace symbols; d diagnostics; r rename symbol; f format selection;
+# w/y system clipboard copy/paste; o open above; j save jump; [/] back/forward;
+# . repeat last motion. LSP features require an appropriate language server.
+#
+# C-c is now a prefix in the editor; native commenting is available on M-;
+# and Space c. C-w cuts; the native window menu remains on Space w.
+# M-; now comments; flip_selections is on C-x C-x.
+# M-. now jumps to definition; repeat_last_motion is on C-c .
+# M-, now jumps back; remove_primary_selection is on C-c m r.
+#
+# Existing differences: C-w/M-d cut selections in normal/select; insert-mode
+# M-d deletes forward and C-w deletes backward by word. C-k and insert-mode
+# word deletions do not populate the yank register. C-y uses Helix's yank
+# register; C-c w/y use the system clipboard. C-l centers (no cycling).
+# Search is regex; Enter confirms; n/N move between matches in normal mode.
+# C-space starts a fresh region; in select mode it collapses and exits.
+# If the OS captures C-space, use native v after collapsing the selection.
+#
+# Each TOML table must appear only once when merging with another config.
+
+
+# this is my own personal configurations...
+theme = "naysayer"  # acme , dracula , emacs , gruber-darker , jetbrains_dark , naysayer , rose_pine
+
+[editor]
+auto-completion           =  true
+auto-pairs                =  true
+auto-format               =  false
+auto-info                 =  true
+bufferline                = "always"
+color-modes               =  true
+continue-comments         =  true
+end-of-line-diagnostics   = "hint"
+indent-heuristic          = "tree-sitter"
+insert-final-newline      =  true
+line-number               = "relative"
+path-completion           =  true
+popup-border              = "all"
+preview-completion-insert =  false
+trim-trailing-whitespace  =  true
+
+
+[editor.statusline]
+left   = ["mode", "spinner", "version-control", "read-only-indicator"]
+center = ["file-name", "file-modification-indicator"]
+right  = ["diagnostics", "selections", "position", "file-type"]
+separator = "|"  # TODO - Experiment with other separator symbols
+mode.normal = ">>>>>>>"
+mode.insert = "|||||||"
+mode.select = "<<<<<<<"
+diagnostics = ["warning", "error"]
+
+[editor.lsp]
+enable = true
+display-messages = true
+display-progress-messages = false
+auto-signature-help = true
+display-inlay-hints = false
+
+[editor.file-picker]
+hidden = false
+
+[editor.search]
+smart-case = true
+wrap-around = true
+
+[editor.inline-diagnostics]
+cursor-line = "hint"  # TODO - experiment - "disable" if dowan
+
+[editor.whitespace.render]
+space   = "none"  # TODO - other option : "all"
+tab     = "none"  # TODO - other option : "all"
+newline = "none"
+
+[editor.whitespace.characters]
+space = "."
+tab = ">"
+newline = "‡"
+tabpad = "."
+
+[editor.soft-wrap]
+enable = true
+wrap-indicator = "‡ "
+
+
+# this is the portion on keybindings
+[keys.normal]
+"C-f" = "move_char_right"
+"C-b" = "move_char_left"
+"C-n" = "move_visual_line_down"
+"C-p" = "move_visual_line_up"
+"A-f" = "move_next_word_end"
+"A-b" = "move_prev_word_start"
+"C-a" = "goto_line_start"
+"C-e" = "goto_line_end"
+"A-lt" = "goto_file_start"
+"A-gt" = "goto_file_end"
+"C-v" = "page_down"
+"A-v" = "page_up"
+"C-l" = "align_view_center"
+"C-space" = ["collapse_selection", "select_mode"]
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+"C-w" = "delete_selection"
+"A-d" = "delete_selection"
+"A-w" = "yank"
+"C-y" = "paste_before"
+"C-d" = "delete_char_forward"
+"C-h" = "delete_char_backward"
+"C-k" = "kill_to_line_end"
+"C-/" = "undo"
+"C-_" = "undo"
+"C-7" = "undo"
+"C-?" = "redo"
+"C-s" = "search"
+"C-r" = "rsearch"
+"A-x" = "command_palette"
+"A-:" = "command_mode"
+"C-S-/" = "redo"
+"C-S-?" = "redo"
+"C-o" = "open_below"
+"A-;" = "toggle_comments"
+"A-." = "goto_definition"
+"A-," = "jump_backward"
+"C-gt" = ["search_selection", "extend_search_next"]
+"C-lt" = ["search_selection", "extend_search_prev"]
+"A-%" = ["select_all", "select_regex"]
+
+[keys.normal."C-x"]
+"C-f" = "@:open<space>"
+"C-s" = ":write"
+"s" = ":write-all"
+"b" = "buffer_picker"
+"k" = ":buffer-close"
+"h" = ["select_all", "select_mode"]
+"u" = "undo"
+"C-c" = ":quit-all"
+"0" = "wclose"
+"1" = "wonly"
+"2" = "hsplit"
+"3" = "vsplit"
+"o" = "rotate_view"
+"left" = "goto_previous_buffer"
+"right" = "goto_next_buffer"
+"C-b" = "buffer_picker"
+"C-x" = "flip_selections"
+"C-u" = "switch_to_uppercase"
+"C-l" = "switch_to_lowercase"
+"U" = "redo"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.normal."C-c"]
+"a" = "align_selections"
+"s" = "select_regex"
+"/" = "global_search"
+"i" = "symbol_picker"
+"I" = "workspace_symbol_picker"
+"d" = "diagnostics_picker"
+"r" = "rename_symbol"
+"f" = "format_selections"
+"w" = "yank_to_clipboard"
+"y" = "paste_clipboard_before"
+"o" = "open_above"
+"j" = "save_selection"
+"[" = "jump_backward"
+"]" = "jump_forward"
+"." = "repeat_last_motion"
+"u" = "commit_undo_checkpoint"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.normal."C-c"."m"]
+"n" = ["search_selection", "extend_search_next"]
+"p" = ["search_selection", "extend_search_prev"]
+"a" = ["select_all", "select_regex"]
+"j" = "copy_selection_on_next_line"
+"k" = "copy_selection_on_prev_line"
+"s" = "split_selection_on_newline"
+"f" = "keep_selections"
+"o" = "keep_primary_selection"
+"r" = "remove_primary_selection"
+"[" = "rotate_selections_backward"
+"]" = "rotate_selections_forward"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.normal."A-g"]
+"g" = "@:goto<space>"
+"n" = "goto_next_diag"
+"p" = "goto_prev_diag"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.select]
+"C-f" = "extend_char_right"
+"C-b" = "extend_char_left"
+"C-n" = "extend_visual_line_down"
+"C-p" = "extend_visual_line_up"
+"A-f" = "extend_next_word_end"
+"A-b" = "extend_prev_word_start"
+"C-a" = "extend_to_line_start"
+"C-e" = "extend_to_line_end"
+"A-lt" = "extend_to_file_start"
+"A-gt" = "extend_to_file_end"
+"C-v" = "page_down"
+"A-v" = "page_up"
+"C-l" = "align_view_center"
+"C-space" = ["normal_mode", "collapse_selection"]
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+"C-w" = "delete_selection"
+"A-d" = "delete_selection"
+"A-w" = "yank"
+"C-y" = "paste_before"
+"C-d" = "delete_char_forward"
+"C-h" = "delete_char_backward"
+"C-k" = "kill_to_line_end"
+"C-/" = "undo"
+"C-_" = "undo"
+"C-7" = "undo"
+"C-?" = "redo"
+"C-s" = "search"
+"C-r" = "rsearch"
+"A-x" = "command_palette"
+"A-:" = "command_mode"
+"C-S-/" = "redo"
+"C-S-?" = "redo"
+"C-o" = "open_below"
+"A-;" = "toggle_comments"
+"A-." = "goto_definition"
+"A-," = "jump_backward"
+"C-gt" = ["search_selection", "extend_search_next"]
+"C-lt" = ["search_selection", "extend_search_prev"]
+"A-%" = "select_regex"
+
+[keys.select."C-x"]
+"C-f" = "@<esc>:open<space>"
+"C-s" = ":write"
+"s" = ":write-all"
+"b" = "buffer_picker"
+"k" = ":buffer-close"
+"h" = "select_all"
+"u" = "undo"
+"C-c" = ":quit-all"
+"0" = "wclose"
+"1" = "wonly"
+"2" = "hsplit"
+"3" = "vsplit"
+"o" = "rotate_view"
+"left" = "goto_previous_buffer"
+"right" = "goto_next_buffer"
+"C-b" = "buffer_picker"
+"C-x" = "flip_selections"
+"C-u" = "switch_to_uppercase"
+"C-l" = "switch_to_lowercase"
+"U" = "redo"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.select."C-c"]
+"a" = "align_selections"
+"s" = "select_regex"
+"/" = "global_search"
+"i" = "symbol_picker"
+"I" = "workspace_symbol_picker"
+"d" = "diagnostics_picker"
+"r" = "rename_symbol"
+"f" = "format_selections"
+"w" = "yank_to_clipboard"
+"y" = "paste_clipboard_before"
+"o" = "open_above"
+"j" = "save_selection"
+"[" = "jump_backward"
+"]" = "jump_forward"
+"." = "repeat_last_motion"
+"u" = "commit_undo_checkpoint"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.select."C-c"."m"]
+"n" = ["search_selection", "extend_search_next"]
+"p" = ["search_selection", "extend_search_prev"]
+"a" = ["select_all", "select_regex"]
+"j" = "copy_selection_on_next_line"
+"k" = "copy_selection_on_prev_line"
+"s" = "split_selection_on_newline"
+"f" = "keep_selections"
+"o" = "keep_primary_selection"
+"r" = "remove_primary_selection"
+"[" = "rotate_selections_backward"
+"]" = "rotate_selections_forward"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.select."A-g"]
+"g" = "@:goto<space>"
+"n" = "goto_next_diag"
+"p" = "goto_prev_diag"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.insert]
+"C-f" = ["commit_undo_checkpoint", "move_char_right"]
+"C-b" = ["commit_undo_checkpoint", "move_char_left"]
+"C-n" = ["commit_undo_checkpoint", "move_visual_line_down"]
+"C-p" = ["commit_undo_checkpoint", "move_visual_line_up"]
+"A-f" = ["commit_undo_checkpoint", "move_next_word_end", "move_char_right", "collapse_selection"]
+"A-b" = ["commit_undo_checkpoint", "move_prev_word_start", "collapse_selection"]
+"C-a" = ["commit_undo_checkpoint", "goto_line_start"]
+"C-e" = ["commit_undo_checkpoint", "goto_line_end_newline"]
+"A-lt" = ["commit_undo_checkpoint", "goto_file_start"]
+"A-gt" = ["commit_undo_checkpoint", "goto_file_end"]
+"C-v" = ["commit_undo_checkpoint", "page_down"]
+"A-v" = ["commit_undo_checkpoint", "page_up"]
+"C-l" = "align_view_center"
+"C-space" = ["normal_mode", "collapse_selection", "select_mode"]
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+"C-d" = "delete_char_forward"
+"C-h" = "delete_char_backward"
+"A-d" = ["commit_undo_checkpoint", "delete_word_forward", "commit_undo_checkpoint"]
+"A-backspace" = ["commit_undo_checkpoint", "delete_word_backward", "commit_undo_checkpoint"]
+"C-w" = ["commit_undo_checkpoint", "delete_word_backward", "commit_undo_checkpoint"]
+"C-k" = ["commit_undo_checkpoint", "kill_to_line_end", "commit_undo_checkpoint"]
+"C-y" = "paste_before"
+"C-/" = ["normal_mode", "undo"]
+"C-_" = ["normal_mode", "undo"]
+"C-7" = ["normal_mode", "undo"]
+"C-?" = ["normal_mode", "redo"]
+"C-s" = ["normal_mode", "search"]
+"C-r" = ["normal_mode", "rsearch"]
+"A-x" = ["normal_mode", "command_palette"]
+"A-:" = ["normal_mode", "command_mode"]
+"A-/" = "completion"
+"C-S-/" = ["normal_mode", "redo"]
+"C-S-?" = ["normal_mode", "redo"]
+"C-o" = ["insert_newline", "commit_undo_checkpoint"]
+"A-;" = ["normal_mode", "toggle_comments"]
+"A-." = ["normal_mode", "goto_definition"]
+"A-," = ["normal_mode", "jump_backward"]
+"C-gt" = ["normal_mode", "search_selection", "extend_search_next"]
+"C-lt" = ["normal_mode", "search_selection", "extend_search_prev"]
+"A-%" = ["normal_mode", "select_all", "select_regex"]
+"left" = ["commit_undo_checkpoint", "move_char_left"]
+"right" = ["commit_undo_checkpoint", "move_char_right"]
+"up" = ["commit_undo_checkpoint", "move_line_up"]
+"down" = ["commit_undo_checkpoint", "move_line_down"]
+"home" = ["commit_undo_checkpoint", "goto_line_start"]
+"end" = ["commit_undo_checkpoint", "goto_line_end_newline"]
+"pageup" = ["commit_undo_checkpoint", "page_up"]
+"pagedown" = ["commit_undo_checkpoint", "page_down"]
+"ret" = ["insert_newline", "commit_undo_checkpoint"]
+"C-j" = ["insert_newline", "commit_undo_checkpoint"]
+
+[keys.insert."C-x"]
+"C-f" = "@<esc>:open<space>"
+"C-s" = ["commit_undo_checkpoint", ":write"]
+"s" = ["commit_undo_checkpoint", ":write-all"]
+"b" = ["normal_mode", "buffer_picker"]
+"k" = ["normal_mode", ":buffer-close"]
+"h" = ["normal_mode", "select_all", "select_mode"]
+"u" = ["normal_mode", "undo"]
+"C-c" = ["normal_mode", ":quit-all"]
+"0" = ["normal_mode", "wclose"]
+"1" = ["normal_mode", "wonly"]
+"2" = ["normal_mode", "hsplit"]
+"3" = ["normal_mode", "vsplit"]
+"o" = ["normal_mode", "rotate_view"]
+"left" = ["normal_mode", "goto_previous_buffer"]
+"right" = ["normal_mode", "goto_next_buffer"]
+"C-b" = ["normal_mode", "buffer_picker"]
+"C-x" = ["normal_mode", "flip_selections"]
+"C-u" = ["normal_mode", "switch_to_uppercase"]
+"C-l" = ["normal_mode", "switch_to_lowercase"]
+"U" = ["normal_mode", "redo"]
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.insert."C-c"]
+"a" = ["normal_mode", "align_selections"]
+"s" = ["normal_mode", "select_regex"]
+"/" = ["normal_mode", "global_search"]
+"i" = ["normal_mode", "symbol_picker"]
+"I" = ["normal_mode", "workspace_symbol_picker"]
+"d" = ["normal_mode", "diagnostics_picker"]
+"r" = ["normal_mode", "rename_symbol"]
+"f" = ["normal_mode", "format_selections"]
+"w" = ["normal_mode", "yank_to_clipboard"]
+"y" = ["normal_mode", "paste_clipboard_before"]
+"o" = ["normal_mode", "open_above"]
+"j" = ["normal_mode", "save_selection"]
+"[" = ["normal_mode", "jump_backward"]
+"]" = ["normal_mode", "jump_forward"]
+"." = ["normal_mode", "repeat_last_motion"]
+"u" = "commit_undo_checkpoint"
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.insert."C-c"."m"]
+"n" = ["normal_mode", "search_selection", "extend_search_next"]
+"p" = ["normal_mode", "search_selection", "extend_search_prev"]
+"a" = ["normal_mode", "select_all", "select_regex"]
+"j" = ["normal_mode", "copy_selection_on_next_line"]
+"k" = ["normal_mode", "copy_selection_on_prev_line"]
+"s" = ["normal_mode", "split_selection_on_newline"]
+"f" = ["normal_mode", "keep_selections"]
+"o" = ["normal_mode", "keep_primary_selection"]
+"r" = ["normal_mode", "remove_primary_selection"]
+"[" = ["normal_mode", "rotate_selections_backward"]
+"]" = ["normal_mode", "rotate_selections_forward"]
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
+
+[keys.insert."A-g"]
+"g" = "@<esc>:goto<space>"
+"n" = ["normal_mode", "goto_next_diag"]
+"p" = ["normal_mode", "goto_prev_diag"]
+"C-g" = ["normal_mode", "collapse_selection", "keep_primary_selection"]
